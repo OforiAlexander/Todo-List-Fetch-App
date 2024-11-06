@@ -1,111 +1,73 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const TodoList = () => {
     const [todos, setTodos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [debugInfo, setDebugInfo] = useState(null);
+    const [updatingTodoId, setUpdatingTodoId] = useState(null);
+    const [deletingTodoId, setDeletingTodoId] = useState(null);
 
-    const API_URL = 'http://localhost:5000'; // Update if API URL is different
+    const API_URL = 'http://localhost:5000';
 
-    const fetchTodos = async (method = 'GET') => {
+    const fetchTodos = async () => {
         try {
             setLoading(true);
             setError(null);
-            setDebugInfo(null);
 
-            const response = await fetch(`${API_URL}/todos`, {
-                method,
+            const response = await axios.get(`${API_URL}/todos`, {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                credentials: 'include' // Add if using cookies
+                withCredentials: true // Add if using cookies
             });
 
-            const debugResponse = {
-                status: response.status,
-                statusText: response.statusText,
-                headers: Object.fromEntries(response.headers.entries()),
-            };
-
-            const textData = await response.text();
-            let jsonData;
-
-            try {
-                jsonData = JSON.parse(textData);
-            } catch (parseError) {
-                setDebugInfo({
-                    ...debugResponse,
-                    rawResponse: textData.slice(0, 500)
-                });
-                throw new Error('Invalid JSON response from server');
-            }
-
-            if (!response.ok) {
-                throw new Error(jsonData.message || `Server responded with status ${response.status}`);
-            }
-
-            setTodos(jsonData.data || []);
-            setDebugInfo(debugResponse);
-
+            setTodos(response.data.data || []);
         } catch (error) {
-            setError(error.message);
+            setError(error.response?.data?.message || error.message);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchTodos('GET');
+        fetchTodos();
     }, []);
 
     const deleteTodo = async (id) => {
         try {
-            setLoading(true);
-            const response = await fetch(`${API_URL}/todos/${id}`, {
-                method: 'DELETE',
+            setDeletingTodoId(id);
+            await axios.delete(`${API_URL}/todos/${id}`, {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 }
             });
-
-            if (response.ok) {
-                setTodos(todos.filter(todo => todo.id !== id));
-            } else {
-                throw new Error('Failed to delete todo');
-            }
+            setTodos(todos.filter(todo => todo.id !== id));
         } catch (error) {
-            setError(error.message);
+            setError(error.response?.data?.message || error.message);
         } finally {
-            setLoading(false);
+            setDeletingTodoId(null);
         }
     };
 
     const toggleComplete = async (id, isComplete) => {
         try {
-            setLoading(true);
-            const response = await fetch(`${API_URL}/todos/${id}`, {
-                method: 'PATCH',
+            setUpdatingTodoId(id);
+            await axios.patch(`${API_URL}/todos/${id}`, { completed: !isComplete }, {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ completed: !isComplete })
+                }
             });
-
-            if (response.ok) {
-                setTodos(todos.map(todo => 
-                    todo.id === id ? { ...todo, completed: !todo.completed } : todo
-                ));
-            } else {
-                throw new Error('Failed to update todo');
-            }
+            setTodos(todos.map(todo => 
+                todo.id === id ? { ...todo, completed: !todo.completed } : todo
+            ));
         } catch (error) {
-            setError(error.message);
+            setError(error.response?.data?.message || error.message);
         } finally {
-            setLoading(false);
+            setUpdatingTodoId(null);
         }
     };
 
@@ -127,14 +89,6 @@ const TodoList = () => {
                     <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
                         <h2 className="font-bold mb-2">Error:</h2>
                         <p>{error}</p>
-                        {debugInfo && (
-                            <div className="mt-4">
-                                <h3 className="font-bold mb-2">Debug Information:</h3>
-                                <pre className="bg-gray-100 p-2 rounded text-sm overflow-auto">
-                                    {JSON.stringify(debugInfo, null, 2)}
-                                </pre>
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -150,14 +104,16 @@ const TodoList = () => {
                                 <button
                                     onClick={() => toggleComplete(todo.id, todo.completed)}
                                     className={`px-2 py-1 rounded ${todo.completed ? 'bg-green-500' : 'bg-yellow-500'} text-white`}
+                                    disabled={updatingTodoId === todo.id}
                                 >
-                                    {todo.completed ? 'Undo' : 'Complete'}
+                                    {updatingTodoId === todo.id ? 'Updating...' : (todo.completed ? 'Undo' : 'Complete')}
                                 </button>
                                 <button
                                     onClick={() => deleteTodo(todo.id)}
                                     className="px-2 py-1 bg-red-500 text-white rounded"
+                                    disabled={deletingTodoId === todo.id}
                                 >
-                                    Delete
+                                    {deletingTodoId === todo.id ? 'Deleting...' : 'Delete'}
                                 </button>
                             </div>
                         </div>

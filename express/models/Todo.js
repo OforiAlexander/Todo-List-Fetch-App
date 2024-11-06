@@ -25,7 +25,6 @@ Todo.init({
     sequelize,
     modelName: "Todo",
     timestamps: true,
-    paranoid: true,
     underscored: true,
     tableName: "todos"
 });
