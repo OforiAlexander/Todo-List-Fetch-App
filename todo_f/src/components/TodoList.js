@@ -20,7 +20,6 @@ const TodoList = () => {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                withCredentials: true // Add if using cookies
             });
 
             setTodos(response.data.data || []);

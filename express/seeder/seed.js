@@ -2,7 +2,6 @@ import Todo from '../models/Todo.js';
 
 async function seedDatabase() {
     try {
-        // Define sample todo data
         const todos = [
             { title: 'Learn Express.js', completed: false },
             { title: 'Build a REST API', completed: false },
@@ -21,7 +20,6 @@ async function seedDatabase() {
             { title: 'Document API endpoints', completed: true },
         ];        
 
-        // Insert sample todos into the database
         for (const todo of todos) {
            const [record, created] = await Todo.findOrCreate({
                 where: { title: todo.title },

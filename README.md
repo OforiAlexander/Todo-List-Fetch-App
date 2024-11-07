@@ -13,12 +13,12 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/github-user-viewer.git
+   git clone https://github.com/OforiAlexander/Todo-List-Fetch-App.git
    ```
 
 2. Navigate to the backend directory:
    ```bash
-   cd github-user-viewer/backend
+   cd todo-list-fetch-app
    ```
 
 3. Install dependencies:
@@ -26,30 +26,25 @@
    npm install
    ```
 
-4. Create a `.env` file in the `backend` directory and add the following environment variables:
+4. Create a `.env` file in the `backend` directory and update the environment variables if needed:
    ```
-   PORT=3000
-   NODE_ENV=development
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_USER=your_username
-   DB_PASSWORD=your_password
-   DB_NAME=github_users_db
-   GITHUB_API_URL=https://api.github.com/users
+   cp .env.example .env
    ```
 
 5. Set up the PostgreSQL database:
-   - Create a new database named `github_users_db`.
+   - Create a new database named `todo`.
    - Ensure the database connection details in the `.env` file match your local PostgreSQL setup.
 
-6. Run the database migrations:
+6. Create the PostgreSQL database:
    ```bash
-   npm run migrate
+   psql -U postgres
+   CREATE DATABASE todo;
+   \c
    ```
 
-7. (Optional) Seed the database with initial data:
+7. Seed the database with initial data:
    ```bash
-   npm run seed
+   node seeder/seed.js
    ```
 
 8. Start the backend server:
@@ -63,7 +58,7 @@ The backend server will start running on `http://localhost:3000`.
 
 1. Navigate to the frontend directory:
    ```bash
-   cd ../frontend
+   cd ../todo_f
    ```
 
 2. Install dependencies:
@@ -76,7 +71,8 @@ The backend server will start running on `http://localhost:3000`.
    npm run dev
    ```
 
-The frontend will start running at `http://localhost:5173`.
+The frontend will start running at `http://localhost:3001`.
+- I advice that you change the PORT env variable to 5000 is you want to use localhost:3000 for the frontend
 
 ## Project Structure
 
@@ -87,21 +83,19 @@ The backend follows the Model-View-Controller (MVC) architecture and uses the Se
 ```
 backend/
 ├── config/
-│   └── database.js
+│   └── db.js
 ├── controllers/
-│   └── UserController.js
-├── migrations/
-│   └── create-users-table.js
+│   └── TodoController.js
 ├── models/
-│   └── User.js
+│   └── Todo.js
 ├── routes/
 │   └── web.js
-├── seeders/
-│   └── user-seeder.js
-├── middleware/
-│   └── validators.js
+├── seeder/
+│   └── seed.js
 ├── index.js
+├── .env.example
 └── package.json
+└── validate.js
 ```
 
 ### Frontend
@@ -112,33 +106,12 @@ The frontend is built using React and utilizes the Tailwind CSS library for styl
 frontend/
 ├── src/
 │   ├── components/
-│   │   └── UserList.jsx
-│   ├── App.jsx
-│   └── main.jsx
+│   │   └── TodoList.js
+│   ├── App.js
+│   └── main.js
 ├── index.html
 ├── package.json
 └── vite.config.js
-```
-
-## Environment Variables
-
-The backend project uses the following environment variables:
-
-- `PORT`: The port number for the backend server (default is `3000`).
-- `NODE_ENV`: The environment mode (e.g., `development`, `production`).
-- `DB_HOST`: The host address for the PostgreSQL database.
-- `DB_PORT`: The port number for the PostgreSQL database.
-- `DB_USER`: The username for the PostgreSQL database.
-- `DB_PASSWORD`: The password for the PostgreSQL database.
-- `DB_NAME`: The name of the PostgreSQL database.
-- `GITHUB_API_URL`: The base URL for the GitHub API.
-
-## Seeding the Database
-
-The backend project includes a seeder script that can be used to populate the `users` table with initial data. To run the seeder, execute the following command:
-
-```bash
-npm run seed
 ```
 
 This will fetch a set of GitHub users from the GitHub API and store them in the PostgreSQL database.
@@ -147,12 +120,6 @@ This will fetch a set of GitHub users from the GitHub API and store them in the 
 
 The backend project provides the following API endpoints:
 
-1. `POST /api/users`: Fetches and stores GitHub user data in the database.
-2. `GET /api/users`: Retrieves all the stored GitHub user data from the database.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-```
-
-This README.md file provides a comprehensive overview of the project, including prerequisites, installation instructions for both the backend and frontend, the project structure, environment variables, seeding the database, API endpoints, and the project's license. Feel free to customize this README to fit your specific project requirements.
+1. `GET /todos`: Fetchs all todos from the database.
+2. `PATCH /todos/:id`: Update a specified todo item by the ID and the field is completed.
+2. `DELETE /todos/:id`: Delete a specified todo item by the ID completely.
